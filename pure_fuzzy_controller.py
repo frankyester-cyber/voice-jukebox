@@ -211,6 +211,7 @@ def dispatch(command: dict, player: PlayerEngine):
 
         if not tracks:
             print("\n[controller] No matching tracks found. Continuing last playlist.")
+            play_error_beep()
             player.play()
             return
 
@@ -305,23 +306,51 @@ def main():
 
     print("\n" + "=" * 60)
     print(" Voice Jukebox Ready!")
-    print(" Mode: Push-to-Talk (Press Enter to record/stop)")
+    print(" Mode: Push-to-Talk (Press ENTER or PTT Button to record/stop)")
     print("=" * 60)
     print(" Press Ctrl+C to exit.\n")
+    
+    # Setup dual PTT / Enter Key triggers
+    start_event = threading.Event()
+    stop_event = threading.Event()
+
+    def on_button_press():
+        start_event.set()
+
+    def on_button_release():
+        stop_event.set()
+
+    if getattr(listener, 'ptt_button', None):
+        listener.ptt_button.when_pressed = on_button_press
+        listener.ptt_button.when_released = on_button_release
+
+    def keyboard_listener():
+        while True:
+            try:
+                input()
+                start_event.set()
+                input()
+                stop_event.set()
+            except (EOFError, KeyboardInterrupt):
+                break
+
+    threading.Thread(target=keyboard_listener, daemon=True).start()
     
     # Play the ready beep exactly ONCE when the app first boots up
     play_ready_beep()
 
     try:
         while True:
-            input("\n[Voice] Press ENTER to START recording...")
+            print("\n[Voice] Press ENTER or PTT Button to START recording...")
+            start_event.wait()
+            start_event.clear()
 
             # Pause playback temporarily while recording to prevent speaker echo
             was_playing = player._is_mpv_running()
             if was_playing:
                 player._ipc_command(["set_property", "pause", True])
 
-            print("[Voice] [RECORDING] Press ENTER to STOP recording.")
+            print("[Voice] [RECORDING] Press ENTER or release PTT Button to STOP recording.")
 
             # Record speech
             t_start = time.time()
@@ -335,7 +364,8 @@ def main():
             with listener.record_and_transcribe_ptt.__globals__['sd'].InputStream(
                 samplerate=16000, channels=1, device=listener.device_idx, dtype="float32", callback=audio_callback
             ):
-                input()
+                stop_event.wait()
+                stop_event.clear()
 
             print("[Voice] [STOPPED] Stopped recording.")
 

@@ -15,7 +15,7 @@ Open two terminal windows:
 **Terminal 1 (Jukebox App):**
 ```bash
 source /home/frank/jukebox-env/bin/activate
-python3 /home/frank/jukebox-env/voice_jukebox_controller.py
+python3 "/home/frank/jukebox-env/version 3 fuzzy/pure_fuzzy_controller.py"
 ```
 
 **Terminal 2 (UPS Monitor - Desk Mode):**
@@ -30,7 +30,7 @@ When the UPS is connected and you want it to actually shut down the Pi when powe
 **Terminal 1 (Jukebox App):**
 ```bash
 source /home/frank/jukebox-env/bin/activate
-python3 /home/frank/jukebox-env/voice_jukebox_controller.py
+python3 "/home/frank/jukebox-env/version 3 fuzzy/pure_fuzzy_controller.py"
 ```
 
 **Terminal 2 (UPS Monitor - Active):**
@@ -58,8 +58,8 @@ After=network.target sound.target
 [Service]
 Type=simple
 User=frank
-WorkingDirectory=/home/frank/jukebox-env
-ExecStart=/home/frank/jukebox-env/bin/python3 /home/frank/jukebox-env/voice_jukebox_controller.py
+WorkingDirectory="/home/frank/jukebox-env/version 3 fuzzy"
+ExecStart=/home/frank/jukebox-env/bin/python3 "/home/frank/jukebox-env/version 3 fuzzy/pure_fuzzy_controller.py"
 Restart=on-failure
 RestartSec=5
 
